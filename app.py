@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import time
 
 app = Flask(__name__)
@@ -6,12 +6,12 @@ app = Flask(__name__)
 # Dummy user database
 users = {"test": "1234"}
 
-# Store login request timestamps
+# Track login requests
 request_logs = []
 
 @app.route('/')
 def home():
-    return "Vulnerable Login Page - POST to /login"
+    return render_template("index.html")  # Serve the HTML page
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -19,14 +19,12 @@ def login():
     username = request.form.get("username")
     password = request.form.get("password")
 
-    # Log request timestamps
     request_logs.append(time.time())
 
-    # Simulate server slowdown if too many requests (basic DoS effect)
-    if len(request_logs) > 50:  # Threshold for overload
-        time.sleep(2)  # Artificial delay to simulate DDoS
+    # Simulate server slowdown under heavy load
+    if len(request_logs) > 50:
+        time.sleep(2)
 
-    # Validate login
     if username in users and users[username] == password:
         return jsonify({"status": "success", "message": "Login successful"}), 200
     return jsonify({"status": "fail", "message": "Invalid credentials"}), 401
